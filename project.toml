@@ -1,0 +1,7 @@
+[project]
+name = "SubGenerator"
+version = "0.1.0"
+description = "Este proyecto permite generar subitulos para videos usando la herramienta whisper para luego traducirlos al español e incluirlos de nuevo en el video."
+authors = ["Vicente Matallana vistrent834@gmail.com"]
+license = "MIT"
+dependencies = ["whisper", "translate"]

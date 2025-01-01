@@ -1,1 +1,24 @@
-/sub
+# Ignorar entornos virtuales
+venv/
+
+# Archivos generados por Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Archivos de configuración específicos del entorno
+.env
+
+# Archivos y carpetas de herramientas de desarrollo
+.idea/
+.vscode/
+*.log
+
+# Archivos de salida
+*.srt
+sub/
+
+# Configuración de sistemas operativos
+.DS_Store
+Thumbs.db
