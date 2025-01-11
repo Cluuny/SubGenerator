@@ -1,6 +1,7 @@
 import os
 import subprocess
 from translate import Translator
+import shutil
 
 input_file = "videos.txt"
 language = "English"
@@ -14,26 +15,25 @@ def ensure_directory_exists(directory):
         os.makedirs(directory)
 
 
-def translate_subtitles(srt_file):
-    """Traduce un archivo de subtítulos .srt al idioma especificado."""
+def clean_old_files(exclude_files):
+    """
+    Elimina la carpeta 'sub' y todos los archivos .json, .tsv, .srt, .vtt y .txt, 
+    excepto los archivos especificados en exclude_files.
+    """
     try:
-        output_file = os.path.join(
-            subtitles_dir, os.path.splitext(os.path.basename(srt_file))[0] + f"_{translation_language}.srt")
-        translator = Translator(to_lang=translation_language)
+        # Eliminar la carpeta 'sub' si existe
+        if os.path.exists(subtitles_dir):
+            shutil.rmtree(subtitles_dir)
 
-        with open(srt_file, "r", encoding="utf-8") as infile, open(output_file, "w", encoding="utf-8") as outfile:
-            for line in infile:
-                if line.strip().isdigit() or "-->" in line:
-                    outfile.write(line)
-                else:
-                    translated_text = translator.translate(line.strip())
-                    outfile.write(translated_text + "\n")
+        # Eliminar archivos en el directorio actual excepto los excluidos
+        for file in os.listdir("."):
+            if (file.endswith(('.json', '.tsv', '.srt', '.vtt', '.txt')) and
+                    file not in exclude_files):
+                os.remove(file)
 
-        print(f"Subtítulos traducidos guardados en: {output_file}")
-        return output_file
+        print("Archivos antiguos eliminados, excepto los especificados en la lista de exclusión.")
     except Exception as e:
-        print(f"Error al traducir el archivo .srt: {e}")
-        return None
+        print(f"Error al limpiar los archivos antiguos: {e}")
 
 
 def generate_subtitles(video_path):
@@ -41,12 +41,15 @@ def generate_subtitles(video_path):
     try:
         print(f"Generando subtítulos para: {video_path}")
         subprocess.run(
-            ["whisper", video_path, "--language", language], check=True)
+            ["whisper", video_path, "--language", language, "--output_format", "srt"], check=True)
 
-        srt_file = os.path.join(
-            subtitles_dir, os.path.splitext(os.path.basename(video_path))[0] + ".srt")
+        srt_file = os.path.join("./",
+                                subtitles_dir, os.path.splitext(os.path.basename(video_path))[0] + ".srt")
         original_srt_file = os.path.splitext(
             os.path.basename(video_path))[0] + ".srt"
+
+        print(original_srt_file)
+        print(srt_file)
 
         # Mover el archivo generado a la carpeta de subtítulos
         if os.path.exists(original_srt_file):
@@ -65,12 +68,15 @@ def embed_subtitles(video_path, srt_file):
     try:
         video_dir = os.path.dirname(video_path)
         video_name = os.path.basename(video_path)
-        output_path = os.path.join(video_dir, f"sub-{video_name}")
+        base_name, ext = os.path.splitext(video_name)
+        output_path = os.path.join(video_dir, f"{base_name}-sub{ext}")
 
+        # Asegúrate de que las rutas estén correctamente formateadas
         video_path = os.path.abspath(video_path).replace("\\", "/")
         output_path = os.path.abspath(output_path).replace("\\", "/")
 
         print(f"Añadiendo subtítulos al video: {video_path}")
+
         subprocess.run([
             "ffmpeg", "-i", video_path, "-filter_complex",
             f"subtitles={
@@ -86,6 +92,14 @@ def embed_subtitles(video_path, srt_file):
 
 
 def main():
+    # Lista de archivos que deseas conservar
+    exclude_files = [
+        "requirements.txt",
+        "videos.txt"
+    ]
+
+    # Limpiar archivos antiguos antes de comenzar
+    clean_old_files(exclude_files)
     ensure_directory_exists(subtitles_dir)
 
     if not os.path.exists(input_file):
@@ -97,12 +111,17 @@ def main():
 
     for video_path in video_paths:
         video_path = video_path.strip()
+
+        # Eliminar comillas si están presentes
+        if video_path.startswith('"') and video_path.endswith('"'):
+            video_path = video_path[1:-1]
+
         if os.path.exists(video_path):
             srt_file = generate_subtitles(video_path)
             if srt_file:
-                translated_srt_file = translate_subtitles(srt_file)
-                if translated_srt_file:
-                    embed_subtitles(video_path, translated_srt_file)
+                print(srt_file)
+                srt_file = srt_file.replace("\\", "/")
+                embed_subtitles(video_path, srt_file)
         else:
             print(f"Error: El archivo {video_path} no existe.")
 
