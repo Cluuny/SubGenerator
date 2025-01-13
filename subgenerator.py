@@ -1,129 +1,156 @@
 import os
 import subprocess
-from translate import Translator
 import shutil
 
 input_file = "videos.txt"
 language = "English"
-translation_language = "es"
 subtitles_dir = "sub"
 
 
 def ensure_directory_exists(directory):
-    """Crea el directorio si no existe."""
+    """Create the directory if it does not exist."""
     if not os.path.exists(directory):
         os.makedirs(directory)
 
 
 def clean_old_files(exclude_files):
     """
-    Elimina la carpeta 'sub' y todos los archivos .json, .tsv, .srt, .vtt y .txt, 
-    excepto los archivos especificados en exclude_files.
+    Remove the 'sub' folder and all .json, .tsv, .srt, .vtt, and .txt files,
+    except those specified in exclude_files.
     """
     try:
-        # Eliminar la carpeta 'sub' si existe
         if os.path.exists(subtitles_dir):
             shutil.rmtree(subtitles_dir)
 
-        # Eliminar archivos en el directorio actual excepto los excluidos
         for file in os.listdir("."):
-            if (file.endswith(('.json', '.tsv', '.srt', '.vtt', '.txt')) and
-                    file not in exclude_files):
+            if (
+                file.endswith((".json", ".tsv", ".srt", ".vtt", ".txt"))
+                and file not in exclude_files
+            ):
                 os.remove(file)
 
-        print("Archivos antiguos eliminados, excepto los especificados en la lista de exclusión.")
+        print("Old files cleaned, except those specified in the exclusion list.")
     except Exception as e:
-        print(f"Error al limpiar los archivos antiguos: {e}")
+        print(f"Error cleaning old files: {e}")
 
 
 def generate_subtitles(video_path):
-    """Genera subtítulos para un video usando Whisper."""
+    """Generate subtitles for a video using Whisper."""
     try:
-        print(f"Generando subtítulos para: {video_path}")
+        print(f"Generating subtitles for: {video_path}")
         subprocess.run(
-            ["whisper", video_path, "--language", language, "--output_format", "srt"], check=True)
+            ["whisper", video_path, "--language", language, "--output_format", "srt"],
+            check=True,
+        )
 
-        srt_file = os.path.join("./",
-                                subtitles_dir, os.path.splitext(os.path.basename(video_path))[0] + ".srt")
-        original_srt_file = os.path.splitext(
-            os.path.basename(video_path))[0] + ".srt"
+        original_srt_file = os.path.splitext(os.path.basename(video_path))[0] + ".srt"
+        srt_file = os.path.join(subtitles_dir, original_srt_file)
 
-        print(original_srt_file)
-        print(srt_file)
-
-        # Mover el archivo generado a la carpeta de subtítulos
         if os.path.exists(original_srt_file):
+            ensure_directory_exists(subtitles_dir)
             os.rename(original_srt_file, srt_file)
             return srt_file
         else:
-            print(f"Error: No se generó el archivo .srt para {video_path}")
+            print(f"Error: .srt file was not generated for {video_path}")
             return None
     except subprocess.CalledProcessError as e:
-        print(f"Error al generar subtítulos para {video_path}: {e}")
+        print(f"Error generating subtitles for {video_path}: {e}")
         return None
 
 
 def embed_subtitles(video_path, srt_file):
-    """Añade subtítulos al video usando ffmpeg con opciones de estilo."""
+    """Embed subtitles into the video using ffmpeg with styling options."""
     try:
+        # Construct output path with "-sub" suffix
         video_dir = os.path.dirname(video_path)
-        video_name = os.path.basename(video_path)
-        base_name, ext = os.path.splitext(video_name)
+        base_name, ext = os.path.splitext(os.path.basename(video_path))
         output_path = os.path.join(video_dir, f"{base_name}-sub{ext}")
 
-        # Asegúrate de que las rutas estén correctamente formateadas
-        video_path = os.path.abspath(video_path).replace("\\", "/")
-        output_path = os.path.abspath(output_path).replace("\\", "/")
+        # Ensure paths are properly formatted
+        video_path = video_path.replace("\\", "/")
+        srt_file = srt_file.replace("\\", "/")
+        output_path = output_path.replace("\\", "/")
 
-        print(f"Añadiendo subtítulos al video: {video_path}")
-
-        subprocess.run([
-            "ffmpeg", "-i", video_path, "-filter_complex",
-            f"subtitles={
+        print(f"Embedding subtitles into: {output_path}")
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-i",
+                video_path,
+                "-filter_complex",
+                f"subtitles={
                 srt_file}:force_style='BackColour=&HA0000000,BorderStyle=4,Fontsize=6'",
-            "-c:a", "copy", output_path
-        ], check=True)
-        print(f"Video con subtítulos guardado en: {output_path}")
-        os.remove(srt_file)
+                "-c:a",
+                "copy",
+                output_path,
+            ],
+            check=True,
+        )
+
+        print(f"Subtitled video saved to: {output_path}")
     except subprocess.CalledProcessError as e:
-        print(f"Error al añadir subtítulos a {video_path}: {e}")
+        print(f"Error embedding subtitles: {e}")
     except Exception as e:
-        print(f"Ocurrió un error inesperado: {e}")
+        print(f"Unexpected error embedding subtitles: {e}")
+
+
+def process_videos_in_directory(directory):
+    """Process all .mp4 files in the directory that do not have '-sub' in their name."""
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".mp4") and not file.endswith("-sub.mp4"):
+                video_path = os.path.join(root, file)
+
+                # Check if a subtitled version already exists
+                base_name, ext = os.path.splitext(file)
+                subtitled_file = os.path.join(root, f"{base_name}-sub{ext}")
+                if os.path.exists(subtitled_file):
+                    print(f"Skipping: {video_path} (subtitled version already exists)")
+                    continue
+
+                # Generate subtitles and embed them
+                srt_file = "./" + generate_subtitles(video_path)
+                if srt_file:
+                    embed_subtitles(video_path, srt_file)
+
+
+def natural_sort_key(path):
+    """Extract numeric values from strings for natural sorting."""
+    import re
+
+    return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", path)]
 
 
 def main():
     # Lista de archivos que deseas conservar
-    exclude_files = [
-        "requirements.txt",
-        "videos.txt"
-    ]
+    exclude_files = ["requirements.txt", "videos.txt"]
 
-    # Limpiar archivos antiguos antes de comenzar
     clean_old_files(exclude_files)
-    ensure_directory_exists(subtitles_dir)
 
+    """Main function to process all directories listed in videos.txt."""
     if not os.path.exists(input_file):
-        print(f"Error: El archivo {input_file} no existe.")
+        print(f"Error: {input_file} not found.")
         return
 
-    with open(input_file, "r") as file:
-        video_paths = file.readlines()
+    try:
+        with open(input_file, "r") as file:
+            # Read and clean directory paths
+            directories = [
+                line.strip().strip('"').strip("'") for line in file if line.strip()
+            ]
 
-    for video_path in video_paths:
-        video_path = video_path.strip()
+        # Sort directories naturally
+        directories = sorted(directories, key=natural_sort_key)
 
-        # Eliminar comillas si están presentes
-        if video_path.startswith('"') and video_path.endswith('"'):
-            video_path = video_path[1:-1]
+        for directory in directories:
+            if os.path.exists(directory):
+                print(f"Processing directory: {directory}")
+                process_videos_in_directory(directory)
+            else:
+                print(f"Warning: Directory does not exist: {directory}")
 
-        if os.path.exists(video_path):
-            srt_file = generate_subtitles(video_path)
-            if srt_file:
-                print(srt_file)
-                srt_file = srt_file.replace("\\", "/")
-                embed_subtitles(video_path, srt_file)
-        else:
-            print(f"Error: El archivo {video_path} no existe.")
+    except Exception as e:
+        print(f"Error reading {input_file}: {e}")
 
 
 if __name__ == "__main__":
