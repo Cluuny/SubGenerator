@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0] - 2025-01-13
+
+- Within this release the entire script is passed to a structured application using the model-view-controller pattern.
+
 ## [1.1.0] - 2025-01-13
 
 ### Changed
