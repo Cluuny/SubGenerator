@@ -46,9 +46,9 @@ This script automates the process of generating subtitles for videos using Whisp
    ```
 
 3. The script will:
-   - Clean old subtitle files (unless excluded).
    - Generate subtitles for all `.mp4` videos without `-sub` in their name.
    - Embed the subtitles into the videos.
+   - Clean old subtitle files (unless excluded).
 
 ## Configuration
 
