@@ -22,3 +22,8 @@ sub/
 # Configuración de sistemas operativos
 .DS_Store
 Thumbs.db
+
+# Building
+dist/
+build/
+*.spec
