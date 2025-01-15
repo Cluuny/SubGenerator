@@ -1,8 +1,11 @@
-def generate_subtitles(video_path, language, subtitles_dir):
-    import os, subprocess
+import os
+import subprocess
+import logging  # Importar logging
 
+
+def generate_subtitles(video_path, language, subtitles_dir):
     try:
-        print(f"Generating subtitles for: {video_path}")
+        logging.info(f"Generating subtitles for: {video_path}")
         subprocess.run(
             ["whisper", video_path, "--language", language, "--output_format", "srt"],
             check=True,
@@ -17,8 +20,8 @@ def generate_subtitles(video_path, language, subtitles_dir):
             os.rename(original_srt_file, srt_file)
             return srt_file
         else:
-            print(f"Error: .srt file was not generated for {video_path}")
+            logging.error(f"Error: .srt file was not generated for {video_path}")
             return None
     except subprocess.CalledProcessError as e:
-        print(f"Error generating subtitles for {video_path}: {e}")
+        logging.error(f"Error generating subtitles for {video_path}: {e}")
         return None

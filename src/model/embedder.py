@@ -1,6 +1,9 @@
-def embed_subtitles(video_path, srt_file):
-    import os, subprocess
+import os
+import subprocess
+import logging  # Importar logging
 
+
+def embed_subtitles(video_path, srt_file):
     try:
         video_dir = os.path.dirname(video_path)
         base_name, ext = os.path.splitext(os.path.basename(video_path))
@@ -10,7 +13,7 @@ def embed_subtitles(video_path, srt_file):
         srt_file = srt_file.replace("\\", "/")
         output_path = output_path.replace("\\", "/")
 
-        print(f"Embedding subtitles into: {output_path}")
+        logging.info(f"Embedding subtitles into: {output_path}")
         subprocess.run(
             [
                 "ffmpeg",
@@ -25,8 +28,8 @@ def embed_subtitles(video_path, srt_file):
             check=True,
         )
 
-        print(f"Subtitled video saved to: {output_path}")
+        logging.info(f"Subtitled video saved to: {output_path}")
     except subprocess.CalledProcessError as e:
-        print(f"Error embedding subtitles: {e}")
+        logging.error(f"Error embedding subtitles: {e}")
     except Exception as e:
-        print(f"Unexpected error embedding subtitles: {e}")
+        logging.error(f"Unexpected error embedding subtitles: {e}")

@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging  # Importar logging
 
 
 def ensure_directory_exists(directory):
@@ -31,8 +32,8 @@ def clean_old_files(exclude_files):
             ):
                 os.remove(os.path.join(root_dir, file))
 
-        print(
+        logging.info(
             "Old files cleaned from project root, except those specified in the exclusion list."
         )
     except Exception as e:
-        print(f"Error cleaning old files: {e}")
+        logging.error(f"Error cleaning old files: {e}")
