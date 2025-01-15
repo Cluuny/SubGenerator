@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0.0] - 2025-01-15
+
+- This update includes the addition of a modern and intuitive graphical user interface as a major change.
+
 ## [1.2.0] - 2025-01-13
 
 - Within this release the entire script is passed to a structured application using the model-view-controller pattern.
