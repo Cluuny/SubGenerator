@@ -1,39 +1,53 @@
 import os
-import shutil
-import logging  # Importar logging
+import logging  # Import logging for detailed process tracking
 
 
 def ensure_directory_exists(directory):
-    """Create the directory if it does not exist."""
+    """
+    Create the directory if it does not exist.
+
+    Args:
+        directory (str): The path of the directory to check or create.
+    """
     if not os.path.exists(directory):
         os.makedirs(directory)
+        logging.info(f"Directory created: {directory}")
 
 
-def clean_old_files(exclude_files):
+def clean_old_files(folder):
     """
-    Remove the 'sub' folder and all .json, .tsv, .srt, .vtt, and .txt files,
-    except those specified in exclude_files.
-    """
-    # Calculate the root directory of the project
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    Deletes all .ass files in the directory of the given video.
 
+    Args:
+        folder (str): Path to a folder containing files.
+
+    Returns:
+        int: The number of .ass files deleted.
+
+    Raises:
+        FileNotFoundError: If the folder does not exist.
+    """
     try:
-        # Define the folder to clean
-        subtitles_dir = os.path.join(root_dir, "sub")
+        # Get the absolute path of the provided folder
+        video_dir = os.path.abspath(folder)
 
-        if os.path.exists(subtitles_dir):
-            shutil.rmtree(subtitles_dir)
+        if not os.path.exists(video_dir):
+            logging.error(f"Directory not found: {video_dir}")
+            raise FileNotFoundError(f"The directory {video_dir} does not exist.")
 
-        # Clean specific file types in the root directory
-        for file in os.listdir(root_dir):
-            if (
-                file.endswith((".json", ".tsv", ".srt", ".vtt", ".txt"))
-                and file not in exclude_files
-            ):
-                os.remove(os.path.join(root_dir, file))
+        # Find and delete all .ass files in the directory
+        ass_files = [f for f in os.listdir(video_dir) if f.endswith(".ass")]
+        for ass_file in ass_files:
+            os.remove(os.path.join(video_dir, ass_file))
+            logging.info(f"Deleted file: {ass_file}")
 
-        logging.info(
-            "Old files cleaned from project root, except those specified in the exclusion list."
-        )
+        logging.info(f"Deleted {len(ass_files)} .ass file(s) from {video_dir}.")
+        return len(ass_files)
+
+    except FileNotFoundError as e:
+        logging.exception("Directory not found error.")
+        raise e
+
     except Exception as e:
-        logging.error(f"Error cleaning old files: {e}")
+        logging.exception("An unexpected error occurred while deleting .ass files.")
+        raise e

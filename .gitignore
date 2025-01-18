@@ -26,4 +26,5 @@ Thumbs.db
 # Building
 dist/
 build/
+build_installer/
 *.spec

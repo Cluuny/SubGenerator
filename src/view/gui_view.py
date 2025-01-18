@@ -1,44 +1,73 @@
+import logging
+import threading
+from tkinter.scrolledtext import ScrolledText
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
-import threading
+
+
+class LoggingHandler(logging.Handler):
+    """
+    Custom handler to redirect logging messages
+    to the text widget in the GUI, with colors based on the log level.
+    """
+
+    def __init__(self, log_widget):
+        super().__init__()
+        self.log_widget = log_widget
+
+    def emit(self, record):
+        log_entry = self.format(record) + "\n"
+        self.log_widget.configure(state="normal")  # Temporarily enable editing
+
+        # Configure colors based on log level
+        level_colors = {
+            logging.INFO: "green",
+            logging.WARNING: "orange",
+            logging.ERROR: "red",
+        }
+        color = level_colors.get(record.levelno, "white")  # Default color
+
+        # Insert formatted text
+        self.log_widget.insert("end", log_entry, record.levelname)
+        self.log_widget.tag_config(record.levelname, foreground=color)
+
+        # Auto-scroll to the end
+        self.log_widget.see("end")
+        self.log_widget.configure(state="disabled")  # Disable editing
 
 
 class SubtitleView:
-    def __init__(self, root, controller):
-        """
-        Initialize the GUI.
+    """
+    Class representing the view in the MVC pattern for a subtitle generation application.
+    Manages the user interface and user interactions.
+    """
 
-        :param root: The root Tkinter window.
-        :param controller: The controller instance to interact with the business logic.
-        """
+    def __init__(self, root, controller):
         self.root = root
         self.controller = controller
 
-        # Configure the root window
-        ctk.set_appearance_mode("dark")  # Modes: "dark", "light", "system"
-        ctk.set_default_color_theme("green")  # Themes: "blue", "green", "dark-blue"
-
+        # Initial GUI configuration
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("green")
         self.root.title("MP4 Subtitle Generator")
-        self.root.geometry("800x350")
-        self.root.resizable(False, False)
-        self.root.minsize(800, 350)
-        self.root.maxsize(800, 350)
-        self.root.update_idletasks()
 
+        # GUI variables
         self.folder_path = ctk.StringVar()
         self.language = ctk.StringVar(value="English")
 
+        # Widget and logging configuration
         self._setup_widgets()
+        self._setup_logging()
 
     def _setup_widgets(self):
         """
-        Setup all the widgets for the GUI.
+        Configures all the widgets in the user interface.
         """
         # Main frame
         main_frame = ctk.CTkFrame(self.root, corner_radius=20)
-        main_frame.pack(fill="both", expand=True, padx=30, pady=30)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Title label
+        # Title
         title_label = ctk.CTkLabel(
             main_frame,
             text="MP4 Subtitle Generator",
@@ -47,48 +76,80 @@ class SubtitleView:
         title_label.pack(pady=(10, 20))
 
         # Folder selection
-        folder_frame = ctk.CTkFrame(main_frame, corner_radius=15)
-        folder_frame.pack(fill="x", pady=10, padx=20)
-
-        ctk.CTkLabel(
-            folder_frame, text="Select Folder:", font=("Arial", 14), anchor="w"
-        ).grid(column=0, row=0, sticky="w", padx=15, pady=15)
-        folder_entry = ctk.CTkEntry(
-            folder_frame, textvariable=self.folder_path, width=400
-        )
-        folder_entry.grid(column=1, row=0, padx=10)
-        ctk.CTkButton(folder_frame, text="Browse", command=self._browse_folder).grid(
-            column=2, row=0, padx=15
-        )
+        self._create_folder_selection(main_frame)
 
         # Language selection
-        language_frame = ctk.CTkFrame(main_frame, corner_radius=15)
-        language_frame.pack(fill="x", pady=10, padx=20)
-
-        ctk.CTkLabel(
-            language_frame, text="Language Code:", font=("Arial", 14), anchor="w"
-        ).grid(column=0, row=0, sticky="w", padx=15, pady=15)
-
-        # Create the OptionMenu for language selection
-        language_options = ["English", "Spanish", "French"]
-        language_menu = ctk.CTkOptionMenu(
-            language_frame, variable=self.language, values=language_options
-        )
-        language_menu.grid(column=1, row=0, padx=10)
+        self._create_language_selection(main_frame)
 
         # Start button
-        start_button = ctk.CTkButton(
+        ctk.CTkButton(
+            main_frame, text="Start", command=self._start_subtitle_generation
+        ).pack(pady=20)
+
+        # Log window
+        self.log_text = ScrolledText(
             main_frame,
-            text="Start",
-            command=self._start_subtitle_generation,
-            font=("Arial", 16, "bold"),
-            corner_radius=10,
+            height=10,
+            state="disabled",
+            wrap="word",
+            bg="black",  # Black background
+            fg="white",  # Default white text
         )
-        start_button.pack(pady=25)
+        self.log_text.pack(fill="both", padx=10, pady=(10, 20))
+
+    def _create_folder_selection(self, parent):
+        """
+        Creates the frame and widgets for folder selection.
+        """
+        folder_frame = ctk.CTkFrame(parent, corner_radius=15)
+        folder_frame.pack(fill="x", pady=10, padx=10)
+        ctk.CTkLabel(folder_frame, text="Select Folder:").grid(
+            column=0, row=0, padx=10, pady=10
+        )
+        ctk.CTkEntry(folder_frame, textvariable=self.folder_path, width=400).grid(
+            column=1, row=0, padx=10
+        )
+        ctk.CTkButton(folder_frame, text="Browse", command=self._browse_folder).grid(
+            column=2, row=0, padx=10
+        )
+
+    def _create_language_selection(self, parent):
+        """
+        Creates the frame and widgets for language selection.
+        """
+        language_frame = ctk.CTkFrame(parent, corner_radius=15)
+        language_frame.pack(fill="x", pady=10, padx=10)
+        ctk.CTkLabel(language_frame, text="Language Code:").grid(
+            column=0, row=0, padx=10, pady=10
+        )
+        ctk.CTkOptionMenu(
+            language_frame,
+            variable=self.language,
+            values=["English", "Spanish", "French"],
+        ).grid(column=1, row=0, padx=10)
+
+    def _setup_logging(self):
+        """
+        Configures the logging system to redirect logs to the text widget.
+        """
+        handler = LoggingHandler(self.log_text)
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        )
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.INFO)
+
+    def start_thread(self, target_function, *args):
+        """
+        Starts a thread to execute a target function with the given arguments.
+        """
+        thread = threading.Thread(target=target_function, args=args)
+        thread.daemon = True  # Allow the thread to terminate with the application
+        thread.start()
 
     def _browse_folder(self):
         """
-        Open a folder dialog to select a folder.
+        Opens a dialog to select a folder.
         """
         folder = filedialog.askdirectory()
         if folder:
@@ -96,70 +157,34 @@ class SubtitleView:
 
     def _start_subtitle_generation(self):
         """
-        Start the subtitle generation process.
+        Validates user input and calls the controller to start subtitle generation.
         """
         folder = self.folder_path.get()
         language = self.language.get()
 
+        # Input validations
         if not folder:
             self.show_error("Error", "Please select a folder.")
             return
-
         if not language:
-            self.show_error("Error", "Please enter a language code.")
+            self.show_error("Error", "Please select a language.")
             return
 
+        # Call the controller to start the process
         self.controller.start_subtitle_generation(folder, language)
-
-    def update_progress(self, current, total, file_name):
-        """
-        Update the progress bar and label.
-
-        :param current: Current progress count.
-        :param total: Total number of files to process.
-        :param file_name: Name of the file being processed.
-        """
-        progress = current / total
-        self.progress_bar.set(progress)
-        self.progress_label.configure(
-            text=f"Processing {current}/{total}: {file_name}",
-        )
-        self._log_message(f"Processing: {file_name}")
-
-    def _log_message(self, message):
-        """
-        Append a message to the log section.
-
-        :param message: The message to append.
-        """
-        self.log_text.insert("end", f"{message}\n")
-        self.log_text.see("end")
-
-    def start_thread(self, target_function, *args):
-        """
-        Start a new thread to run the specified target function.
-
-        :param target_function: The function to execute in the thread.
-        :param args: Arguments to pass to the target function.
-        """
-        thread = threading.Thread(target=target_function, args=args)
-        thread.daemon = True  # Ensures the thread exits when the main program exits
-        thread.start()
-
-    def show_message(self, title, message):
-        """
-        Show an information message box.
-
-        :param title: Title of the message box.
-        :param message: Message content.
-        """
-        messagebox.showinfo(title, message)
 
     def show_error(self, title, message):
         """
-        Show an error message box.
-
-        :param title: Title of the message box.
-        :param message: Error content.
+        Displays an error dialog.
         """
         messagebox.showerror(title, message)
+
+
+if __name__ == "__main__":
+    # Initial application setup
+    root = ctk.CTk()
+
+    # The actual controller should be implemented and passed here
+    app = SubtitleView(root, None)  # Replace None with the controller
+
+    root.mainloop()

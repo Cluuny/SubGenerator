@@ -1,91 +1,64 @@
-# Subtitle Generator and Embedder
+# MP4 Subtitle Generator
 
-This script automates the process of generating subtitles for videos using Whisper, embedding them into the videos with ffmpeg, and organizing the output. It processes multiple directories of videos and applies consistent subtitle styling.
+MP4 Subtitle Generator is a tool that allows you to automatically generate and add subtitles to MP4 files. This project includes a graphical user interface (GUI) for ease of use.
 
-## Features
+## System Requirements
 
-- **Subtitle Generation**: Automatically creates subtitles for `.mp4` videos using Whisper.
-- **Subtitle Embedding**: Embeds generated `.srt` subtitles into videos with ffmpeg, applying custom styling options.
-- **Directory Processing**: Processes all `.mp4` videos listed in directories specified in `videos.txt`.
-- **File Cleanup**: Removes unnecessary old files (e.g., `.json`, `.tsv`, `.srt`) except those specified in the exclusion list.
+- **Python**: Version 3.12
+- **Whisper**: Must be installed and configured to run from the `whisper` command.
+- **FFmpeg**: Must be installed and added to the PATH to run from the command `ffmpeg`.
 
-## Requirements
+### Installing Dependencies
 
-- Python 3.x
+1. Make sure you have [Python 3.12](https://www.python.org/downloads/) installed on your system.
+2. Install customtkinter by running the following command:
 
-## Installation
+   ````bash
+   pip install customtkinter
+   ````
 
-1. Clone the repository or download the script.
-2. Install the required tools:
-
-     ```bash
-     pip install -r requiremets.txt
-     ```
-
-3. Ensure the script is executable:
-
-   ```bash
-   chmod +x script.py
-   ```
+3. Install Whisper following the official instructions: [OpenAI Whisper](https://github.com/openai/whisper).
+4. Download and install FFmpeg from [FFmpeg.org](https://ffmpeg.org/download.html) and make sure it is set in your PATH variable.
 
 ## Usage
 
-1. Create a `videos.txt` file in the same directory as the script. List the directories containing videos to process, one per line.
+### Graphical User Interface (GUI)
 
-   Example `videos.txt`:
+To use the GUI, simply run the program by his .exe
 
-   ```bash
-   /path/to/directory1
-   /path/to/directory2
-   ```
+1. Select the folder containing the MP4 files.
+2. Choose the subtitle language (e.g. English, Spanish, etc.).
+3. Click the `Start` button to start processing.
 
-2. Run the script:
+## Features
 
-   ```bash
-   python subgenerator.py
-   ```
+- Automatic subtitle generation using Whisper technology.
+- Subtitle embedding in MP4 videos using FFmpeg.
+- Support for multiple languages.
 
-3. The script will:
-   - Generate subtitles for all `.mp4` videos without `-sub` in their name.
-   - Embed the subtitles into the videos.
-   - Clean old subtitle files (unless excluded).
+## Project Structure
 
-## Configuration
+- **main.py**: Main entry point for CLI and GUI.
+- **controller.py**: Main controller for subtitle generation and embedding.
+- **cleaner.py**: Cleaning of temporary and old files.
+- **embedder.py**: Embedding subtitles in MP4 videos.
+- **generator.py**: Generation of subtitle files using Whisper.
+- **view/cli_view.py**: Command line interface.
+- **view/gui_view.py**: Graphical interface built with CustomTkinter.
 
-### Exclusion List
+## Additional Notes
 
-You can modify the `exclude_files` list in the script to specify files that should not be deleted during cleanup. By default, it includes:
+- Make sure the file paths are correct in `videos.txt`.
+- If you encounter errors during execution, check the logs generated in the interface or in the console.
 
-- `requirements.txt`
-- `videos.txt`
+## Contributions
 
-### Subtitle Styling
-
-The subtitles are styled using the following ffmpeg filter:
-
-```bash
-BackColour=&HA0000000, BorderStyle=4, Fontsize=6
-```
-
-You can adjust these styles in the `embed_subtitles` function.
-
-## Script Workflow
-
-1. **Clean Old Files**: Deletes the `sub` folder and any subtitle-related files that are not excluded.
-2. **Process Videos**: Iterates through each directory listed in `videos.txt`.
-   - Checks if the video has already been processed (e.g., `-sub` version exists).
-   - Generates subtitles using Whisper.
-   - Embeds the subtitles into the video with ffmpeg.
-3. **Save Outputs**: Saves subtitled videos with a `-sub` suffix in the same directory as the original video.
-
-## Error Handling
-
-The script includes error handling for:
-
-- Missing `videos.txt` or directories.
-- Issues during subtitle generation or embedding.
-- Unexpected file or directory errors.
+If you wish to contribute to this project, please make a fork of the repository and send a pull request with your improvements.
 
 ## License
 
-This script is open-source. You can modify and distribute it as needed, also you can made a PR for adding features :).
+This project is licensed under the MIT license. See the `LICENSE` file for details.
+
+---
+
+Thanks for using MP4 Subtitle Generator!
