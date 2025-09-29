@@ -1,64 +1,88 @@
 # MP4 Subtitle Generator
 
-MP4 Subtitle Generator is a tool that allows you to automatically generate and add subtitles to MP4 files. This project includes a graphical user interface (GUI) for ease of use.
+MP4 Subtitle Generator is a Python tool that automates the generation and embedding of subtitles into MP4 videos. It uses OpenAI's Whisper model for speech‑to‑text and ffmpeg to embed the resulting subtitles. The project includes both a command‑line interface (CLI) and a graphical user interface (GUI) built with CustomTkinter.
 
-## System Requirements
+## Features
 
-- **Python**: Version 3.12
-- **Whisper**: Must be installed and configured to run from the `whisper` command.
-- **FFmpeg**: Must be installed and added to the PATH to run from the command `ffmpeg`.
+- Automatic transcription of video audio using Whisper.
+- Generation of .srt subtitle files.
+- Embedding subtitles into MP4 videos using ffmpeg.
+- Batch processing of multiple videos and languages.
+- Support for CLI and user‑friendly GUI.
+- Temporary file cleanup and organized output directories.
 
-### Installing Dependencies
+## Prerequisites
 
-1. Make sure you have [Python 3.12](https://www.python.org/downloads/) installed on your system.
-2. Install customtkinter by running the following command:
+- **Python 3.12+** installed on your system.
+- **Whisper** installed and accessible via the whisper command. See the [OpenAI Whisper installation guide](https://github.com/openai/whisper).
+- **FFmpeg** installed and added to your PATH. [Download ffmpeg](https://ffmpeg.org/download.html).
+- **customtkinter** library for the GUI.
 
-   ````bash
-   pip install customtkinter
-   ````
+## Installation
 
-3. Install Whisper following the official instructions: [OpenAI Whisper](https://github.com/openai/whisper).
-4. Download and install FFmpeg from [FFmpeg.org](https://ffmpeg.org/download.html) and make sure it is set in your PATH variable.
+- Clone this repository.
+- Install Python dependencies:
+
+pip install customtkinter
+
+- Follow the Whisper installation instructions and install ffmpeg.
 
 ## Usage
 
 ### Graphical User Interface (GUI)
 
-To use the GUI, simply run the program by his .exe
+- Run the compiled executable (MP4SubtitleGenerator.exe) or execute the Python script:
 
-1. Select the folder containing the MP4 files.
-2. Choose the subtitle language (e.g. English, Spanish, etc.).
-3. Click the `Start` button to start processing.
+python main.py
 
-## Features
+- Select the folder containing your MP4 files.
+- Choose the subtitle language (e.g., en, es).
+- Click **Start** to generate and embed subtitles. Progress and logs will be displayed in the GUI.
 
-- Automatic subtitle generation using Whisper technology.
-- Subtitle embedding in MP4 videos using FFmpeg.
-- Support for multiple languages.
+### Command‑Line Interface (CLI)
+
+You can also run the generator from the CLI:
+
+python main.py --input /path/to/videos --lang en --output /path/to/output
+
+- \--input - directory with MP4 files
+- \--lang - language code (supported by Whisper)
+- \--output - directory where subtitled videos and .srt files will be saved
+
+#### Example
+
+Given a directory with travel.mp4 and interview.mp4, running:
+
+python main.py --input ./videos --lang es --output ./subtitled
+
+will produce travel_subtitled.mp4, travel.srt, interview_subtitled.mp4 and interview.srt inside the ./subtitled directory.
 
 ## Project Structure
 
-- **main.py**: Main entry point for CLI and GUI.
-- **controller.py**: Main controller for subtitle generation and embedding.
-- **cleaner.py**: Cleaning of temporary and old files.
-- **embedder.py**: Embedding subtitles in MP4 videos.
-- **generator.py**: Generation of subtitle files using Whisper.
-- **view/cli_view.py**: Command line interface.
-- **view/gui_view.py**: Graphical interface built with CustomTkinter.
+- main.py - entry point that routes to CLI or GUI.
+- controller.py - orchestrates the generation and embedding processes.
+- generator.py - wraps Whisper calls for transcription.
+- embedder.py - handles ffmpeg commands to embed subtitles.
+- cleaner.py - removes temporary files.
+- view/cli_view.py - CLI interface.
+- view/gui_view.py - GUI built with CustomTkinter.
 
-## Additional Notes
+## Troubleshooting
 
-- Make sure the file paths are correct in `videos.txt`.
-- If you encounter errors during execution, check the logs generated in the interface or in the console.
+- Ensure whisper and ffmpeg commands are available in your PATH.
+- Verify your audio/video has clear speech; noisy audio may reduce transcription accuracy.
+- Check the generated videos.txt file paths; incorrect paths will cause processing errors.
+- Consult the logs (displayed in the GUI or console) for more details.
 
-## Contributions
+## Contributing
 
-If you wish to contribute to this project, please make a fork of the repository and send a pull request with your improvements.
+Pull requests are welcome! If you have feature suggestions or bug reports, please open an issue or submit a PR. For major changes, please discuss them in an issue first.
 
 ## License
 
-This project is licensed under the MIT license. See the `LICENSE` file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+## Acknowledgments
 
-Thanks for using MP4 Subtitle Generator!
+- [OpenAI Whisper](https://github.com/openai/whisper) for the speech‑to‑text engine.
+- [FFmpeg](https://ffmpeg.org/) for media processing.
