@@ -23,7 +23,9 @@ MP4 Subtitle Generator is a Python tool that automates the generation and embedd
 - Clone this repository.
 - Install Python dependencies:
 
+```bash
 pip install customtkinter
+```
 
 - Follow the Whisper installation instructions and install ffmpeg.
 
@@ -33,7 +35,9 @@ pip install customtkinter
 
 - Run the compiled executable (MP4SubtitleGenerator.exe) or execute the Python script:
 
+```bash 
 python main.py
+```
 
 - Select the folder containing your MP4 files.
 - Choose the subtitle language (e.g., en, es).
@@ -43,7 +47,9 @@ python main.py
 
 You can also run the generator from the CLI:
 
+```bash
 python main.py --input /path/to/videos --lang en --output /path/to/output
+```
 
 - \--input - directory with MP4 files
 - \--lang - language code (supported by Whisper)
@@ -53,7 +59,9 @@ python main.py --input /path/to/videos --lang en --output /path/to/output
 
 Given a directory with travel.mp4 and interview.mp4, running:
 
+```bash
 python main.py --input ./videos --lang es --output ./subtitled
+```
 
 will produce travel_subtitled.mp4, travel.srt, interview_subtitled.mp4 and interview.srt inside the ./subtitled directory.
 
